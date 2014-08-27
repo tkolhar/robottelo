@@ -544,7 +544,7 @@ class TestHostCollection(CLITestCase):
                            result.stdout['total-content-hosts'],
                            "There should not be an exception here")
 
-    def test_content_host(self):
+    def test_content_hosts(self):
         """
         @Test: Check if content hosts added to host collection is listed
         @Feature: Host Collection
@@ -570,7 +570,6 @@ class TestHostCollection(CLITestCase):
         })
 
         no_of_content_host = result.stdout['total-content-hosts']
-
         result = HostCollection.add_content_host({
 
             u'id': new_host_col['id'],
