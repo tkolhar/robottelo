@@ -593,11 +593,10 @@ class TestHostCollection(CLITestCase):
         self.assertGreater(result.stdout['total-content-hosts'],
                            no_of_content_host,
                            "There should not be an exception here")
-        
+
         result = HostCollection.content_host({
             u'id': new_host_col['id'],
-            u'organization-id': self.org['id']                                
-                    
+            u'organization-id': self.org['id']
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to get list of content-host')
@@ -605,4 +604,5 @@ class TestHostCollection(CLITestCase):
             len(result.stderr), 0, 'There should not be an error here')
         content_host_id = result.stdout[3].split(' | ')
         self.assertEqual(
-            new_system['id'], content_host_id[0], 'There should not be an error here')
+            new_system['id'], content_host_id[0],
+            'There should not be an error here')
