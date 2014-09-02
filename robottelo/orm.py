@@ -397,7 +397,7 @@ class EntityDeleteMixin(object):
     """A mixin that adds the ability to delete an entity."""
     # (too-few-public-methods) pylint:disable=R0903
     # It's OK that this class has only one public method. It's a targeted
-    # mixin.
+    # mixin, not a standalone class.
     def delete(self, auth=None, synchronous=True):
         """Delete the current entity.
 
@@ -413,7 +413,10 @@ class EntityDeleteMixin(object):
             202 response was received. ``None`` otherwise.
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
-        :raises: ``ValueError`` If the response JSON could not be decoded.
+        :raises: ``ValueError`` If an HTTP 202 response is received and the
+            response JSON can not be decoded.
+        :raises robottelo.orm.TaskTimeout: If an HTTP 202 response is received,
+            ``synchronous is True`` and the task times out.
 
         """
         # Delete this entity and check the status code of the response.
@@ -433,3 +436,101 @@ class EntityDeleteMixin(object):
                 _poll_task(task_id)
             return task_id
         return None
+
+
+class EntityReadMixin(object):
+    """A mixin that provides the ability to read an entity."""
+    # (too-few-public-methods) pylint:disable=R0903
+    # It's OK that this class has only one public method. It's a targeted
+    # mixin, not a standalone class.
+    def read_json(self, auth=None):
+        """Get information about the current entity.
+
+        Send an HTTP GET request to ``self.path(which='this')``. Return the
+        decoded JSON response.
+
+        :param tuple auth: A ``(username, password)`` tuple used when accessing
+            the API. If ``None``, the credentials provided by
+            :func:`robottelo.common.helpers.get_server_credentials` are used.
+        :return: The server's response, with all JSON decoded.
+        :rtype: dict
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+        :raises: ``ValueError`` If the response JSON can not be decoded.
+
+        """
+        if auth is None:
+            auth = helpers.get_server_credentials()
+        response = client.get(
+            self.path(which='this'),
+            auth=auth,
+            verify=False,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def read(self, auth=None, attrs=None):
+        """Instantiate and initialize an object of type ``type(self)``.
+
+        Instantiate an object of type ``type(self)``. Populate the object's
+        attributes using either ``attrs`` or
+        :meth:`robottelo.orm.EntityReadMixin.read_json`. The ``attrs`` argument
+        takes precedence.
+
+        All of an entity's one-to-one and one-to-many relationships are
+        populated with objects of the correct type. For example, if
+        ``SomeEntity.other_entity`` is a one-to-one relationship, both of these
+        commands should succeed:
+
+            SomeEntity(id=N).read().other_entity.id
+            SomeEntity(id=N).read().other_entity.read().other_attr
+
+        In the example above, ``other_entity.id`` is the **only** attribute
+        with a meaningful value. Calling ``other_entity.read`` populates the
+        remaining entity attributes.
+
+        :param tuple auth: Same as for
+            :meth:`robottelo.orm.EntityReadMixin.read_json`.
+        :param dict attrs: Data used to populate the new entity's attributes.
+        :return: An instance of type ``type(self)``. In other words, an
+            instance of ``SomeEntity`` is returned if
+            ``SomeEntity(id=N).read()`` is called.
+        :rtype: robottelo.orm.Entity
+        :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
+            4XX or 5XX status code.
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth=auth)
+        entity = type(self)()
+
+        # We must populate `entity`'s attributes from `attrs`.
+        #
+        # * OneToOneField names end with "_id"
+        # * OneToManyField names end with "_ids"
+        # * Other field names do not have any special name suffix.
+        #
+        # Well, that's the ideal. Unfortunately, the server often serves up
+        # weirdly structured or incomplete data. (See BZ #1122267)
+        for field_name, field_type in entity.get_fields().items():
+            if isinstance(field_type, OneToOneField):
+                entity_id = attrs[field_name + '_id']
+                setattr(
+                    entity,
+                    field_name,
+                    field_type.entity(id=entity_id),
+                )
+            elif isinstance(field_type, OneToManyField):
+                entity_ids = attrs[field_name + '_ids']
+                setattr(
+                    entity,
+                    field_name,
+                    [
+                        field_type.entity(id=entity_id)
+                        for entity_id
+                        in entity_ids
+                    ]
+                )
+            else:
+                setattr(entity, field_name, attrs[field_name])
+        return entity
