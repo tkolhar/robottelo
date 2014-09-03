@@ -47,7 +47,7 @@ class HostCollection(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def content_host(cls, options=None):
+    def content_hosts(cls, options=None):
         """
         List content-hosts added to the host collection
         Usage::
