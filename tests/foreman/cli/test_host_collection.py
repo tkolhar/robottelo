@@ -545,10 +545,12 @@ class TestHostCollection(CLITestCase):
                            "There should not be an exception here")
 
     def test_content_hosts(self):
-        """
-        @Test: Check if content hosts added to host collection is listed
+        """@Test: Check if content hosts added to host collection is listed
+
         @Feature: Host Collection
+
         @Assert: Content-host added to host-collection is listed
+
         """
 
         host_col_name = generate_string('alpha', 15)
@@ -563,15 +565,8 @@ class TestHostCollection(CLITestCase):
                 u'lifecycle-environment-id': self.library['id']})
         except CLIFactoryError as err:
             self.fail(err)
-
-        result = HostCollection.info({
-            u'id': new_host_col['id'],
-            u'organization-id': self.org['id']
-        })
-
-        no_of_content_host = result.stdout['total-content-hosts']
+        no_of_content_host = new_host_col['total-content-hosts']
         result = HostCollection.add_content_host({
-
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
             u'content-host-ids': new_system['id']
@@ -594,14 +589,13 @@ class TestHostCollection(CLITestCase):
                            "There should not be an exception here")
 
         result = HostCollection.content_host({
-            u'id': new_host_col['id'],
+            u'name': host_col_name,
             u'organization-id': self.org['id']
         })
         self.assertEqual(
             result.return_code, 0, 'Failed to get list of content-host')
         self.assertEqual(
             len(result.stderr), 0, 'There should not be an error here')
-        content_host_id = result.stdout[3].split(' | ')
         self.assertEqual(
-            new_system['id'], content_host_id[0],
+            new_system['id'], result.stdout[0]['id'],
             'There should not be an error here')
