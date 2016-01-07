@@ -1027,3 +1027,74 @@ class UserTestCase(UITestCase):
 
         @Status: Manual
         """
+
+    @stubbed()
+    @tier3
+    def test_set_timezone(self):
+        """@Test: Set new timezone for a user
+
+        @Feature: User timezone
+
+        @Steps:
+        1.Navigate to Administer -> Users
+        2.Click on the User
+        3.Select the Timezone Dropdown list
+        4.Try to apply some timezone
+
+        @Assert: User should be able to change timezone
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_dashboard_shows_newtime(self):
+        """@Test: Check if dashboard shows time according to the timezone set
+
+        @Feature: User timezone
+
+        @Steps:
+        1.Change the timezone for a user in Administer -> Users tab
+        2.Navigate to Monitor -> Dashboard
+        3.The left corner displays time according to the new timezone set
+
+        @Assert: Dashboard UI displays new time based on the new timezone
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_logfiles_shows_newtime(self):
+        """@Test: Check if logfiles reflect the new timezone set by the user
+
+        @Feature: User timezone
+
+        @Steps:
+        1.Change the timezones for user in Administer -> Users Tab
+        2.Try to modify content view or environment
+        so that the changes are reflected in log file
+        3.Check if log file shows the new timezone set
+
+        @Assert: Logfiles display time according to changed timezone
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_mails_for_newtimezone(self):
+        """@Test: Check if mails are received to new timezone set by user
+
+        @Feature: User timezone
+
+        @Steps:
+        1.Change the timezones for user in Administer -> Users tab
+        2.Navigate to Administer -> Users tab
+        3.Make sure under Email Preferences -> Mail Enabled
+        4.Send daily/weekly/monthly mails
+
+        @Assert: Emails are send according to new timezone set
+
+        @Status: Manual
+        """
